@@ -1,10 +1,6 @@
 import { z } from "zod";
-
 import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
-
 import { createId } from '@paralleldrive/cuid2'
-import { create } from "domain";
-
 import { createClient } from 'redis'
 
 export const copypastaRouter = createTRPCRouter({
@@ -40,8 +36,6 @@ export const copypastaRouter = createTRPCRouter({
       multi.TTL(input.id)
       multi.INCR("reads")
       const [text, ttl, incr] = await multi.exec(true)
-
-      console.log(incr)
       return {
         id: input.id,
         text,
@@ -54,20 +48,10 @@ export const copypastaRouter = createTRPCRouter({
       ttl: z.number().min(1, "Min minutes to be stored 1").max(3600, "Max minutes to be stored 3600")
     }))
     .mutation(async ({ input }) => {
-
-      // Save to redis
-      // Return the text and the ID that we used to save to REDIS
-      // use CUID2
       const id = createId()
-
-      console.log("Create ID")
-
-      console.log("Connecting to REDIS")
-
       const client = createClient({
         url: "redis://localhost:6379",
       })
-
       client.on('error', err => console.log('Redis client error', err))
 
       await client.connect();
@@ -77,9 +61,7 @@ export const copypastaRouter = createTRPCRouter({
       multi.EXPIRE(id, input.ttl * 60) // TTL needs to be provided to REDIS in seconds
       multi.INCR("writes")
 
-      const savedReply = await multi.exec(true)
-
-      console.log(savedReply)
+      await multi.exec(true)
 
       return {
         id,

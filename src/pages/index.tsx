@@ -17,8 +17,6 @@ const Home: NextPage = () => {
       text: pasta,
       ttl: ttl,
     });
-
-    console.log(savedData);
     location.href = `/pasta/${savedData.id}`;
   };
 
@@ -33,7 +31,6 @@ const Home: NextPage = () => {
 
   const statsText = () => {
     if (stats.data) {
-      console.log(stats.data.writes);
       const writesFormatted = new Intl.NumberFormat("en-GB").format(
         stats.data.writes
       );
@@ -57,7 +54,6 @@ const Home: NextPage = () => {
         <meta name="description" content="CopyPasta App" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
-
       <main className=" flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-[#000000] to-[#1A2F4B]">
         <div className="flex w-full flex-row items-center justify-center bg-red-600 p-2 font-sans-title font-bold text-white">
           <p>SOME MESSAGE</p>
