@@ -2,12 +2,14 @@ import { z } from "zod";
 import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
 import { createId } from '@paralleldrive/cuid2'
 import { createClient } from 'redis'
+import { TRPCError } from "@trpc/server";
+import { env } from "~/env.mjs";
 
 export const copypastaRouter = createTRPCRouter({
   stats: publicProcedure
     .query(async () => {
       const client = createClient({
-        url: "redis://localhost:6379",
+        url: env.REDIS_SERVER_URL,
       })
       client.on('error', err => console.log('Redis client error', err))
       await client.connect();
@@ -24,7 +26,7 @@ export const copypastaRouter = createTRPCRouter({
     .input(z.object({ id: z.string().min(1, "Must provide an ID") }))
     .query(async ({ input }) => {
       const client = createClient({
-        url: "redis://localhost:6379",
+        url: env.REDIS_SERVER_URL,
       })
 
       client.on('error', err => console.log('Redis client error', err))
@@ -32,10 +34,18 @@ export const copypastaRouter = createTRPCRouter({
       await client.connect();
 
       const multi = client.multi()
-      multi.GET(input.id)
-      multi.TTL(input.id)
+      multi.GET("msg:" + input.id)
+      multi.TTL("msg:" + input.id)
       multi.INCR("reads")
-      const [text, ttl, incr] = await multi.exec(true)
+      const [text, ttl, ] = await multi.exec(true)
+      
+      if(text == null) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'The ID does not exist'
+        })
+      }
+
       return {
         id: input.id,
         text,
@@ -50,15 +60,15 @@ export const copypastaRouter = createTRPCRouter({
     .mutation(async ({ input }) => {
       const id = createId()
       const client = createClient({
-        url: "redis://localhost:6379",
+        url: env.REDIS_SERVER_URL,
       })
       client.on('error', err => console.log('Redis client error', err))
 
       await client.connect();
 
-      let multi = client.multi()
-      multi.SET(id, input.text)
-      multi.EXPIRE(id, input.ttl * 60) // TTL needs to be provided to REDIS in seconds
+      const multi = client.multi()
+      multi.SET("msg:" + id, input.text)
+      multi.EXPIRE("msg:" + id, input.ttl * 60) // TTL needs to be provided to REDIS in seconds
       multi.INCR("writes")
 
       await multi.exec(true)

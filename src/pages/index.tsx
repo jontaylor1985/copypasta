@@ -1,9 +1,8 @@
-import { timeLog } from "console";
 import { type NextPage } from "next";
 import Head from "next/head";
-import Link from "next/link";
 import React, { useEffect, useRef, useState } from "react";
 import { api } from "~/utils/api";
+import { env } from "~/env.mjs";
 
 const Home: NextPage = () => {
   const [pasta, setPasta] = useState("");
@@ -12,12 +11,22 @@ const Home: NextPage = () => {
   const stats = api.copypasta.stats.useQuery();
   const textarearef = useRef<HTMLTextAreaElement>(null);
   const timeref = useRef<HTMLSelectElement>(null);
-  const savePasta = async () => {
-    const savedData = await save.mutateAsync({
-      text: pasta,
-      ttl: ttl,
-    });
-    location.href = `/pasta/${savedData.id}`;
+
+  const savePasta = () => {
+    save
+      .mutateAsync({
+        text: pasta,
+        ttl: ttl,
+      })
+      .catch(() => {
+        // do nothing
+      })
+      .then((savedData) => {
+        if (savedData) location.href = `/pasta/${savedData.id}`;
+      })
+      .finally(() => {
+        //do nothing
+      });
   };
 
   useEffect(() => {
@@ -38,12 +47,14 @@ const Home: NextPage = () => {
         stats.data.reads
       );
       return (
-        <h2 className="font-sans-title text-2xl font-extrabold text-secondary">
+        <h2 className="mt-5 font-sans-title text-2xl font-extrabold text-secondary">
           {writesFormatted} Shared messages, viewed {readsFormatted} times
         </h2>
       );
     } else {
-      <h2>Loading stats...</h2>;
+      <h2 className="mt-5 font-sans-title text-2xl font-extrabold text-secondary">
+        Loading stats...
+      </h2>;
     }
   };
 
@@ -56,12 +67,14 @@ const Home: NextPage = () => {
       </Head>
       <main className=" flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-[#000000] to-[#1A2F4B]">
         <div className="flex w-full flex-row items-center justify-center bg-red-600 p-2 font-sans-title font-bold text-white">
-          <p>SOME MESSAGE</p>
+          <p>{env.NEXT_PUBLIC_BANNER_MESSAGE}</p>
         </div>
         <div className="m-auto flex w-[900px] flex-col items-center justify-center">
           <h1 className="font-sans-title text-7xl font-extrabold text-primary">
-            CopyPasta
+            CopyPasta{" "}
+            <span className="inline text-3xl text-primary/50">BY JT</span>
           </h1>
+
           {statsText()}
           <textarea
             ref={textarearef}
@@ -90,7 +103,7 @@ const Home: NextPage = () => {
           </div>
         </div>
         <div className="flex w-full flex-row items-center justify-center bg-red-600 p-2 font-sans-title font-bold text-white">
-          <p>SOME MESSAGE</p>
+          <p>{env.NEXT_PUBLIC_BANNER_MESSAGE}</p>
         </div>
       </main>
     </>
