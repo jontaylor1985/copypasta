@@ -1,3 +1,9 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@font-face {
+    font-family: 'BrunoAce';
+    src: url('../../asset/BrunoAceSC-Regular.ttf');
+    font-style: normal;
+}
