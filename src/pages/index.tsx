@@ -6,7 +6,7 @@ import { env } from "~/env.mjs";
 
 const Home: NextPage = () => {
   const [pasta, setPasta] = useState("");
-  const [ttl, setTtl] = useState(1);
+  const [ttl, setTtl] = useState(5);
   const save = api.copypasta.save.useMutation();
   const stats = api.copypasta.stats.useQuery();
   const textarearef = useRef<HTMLTextAreaElement>(null);
@@ -34,7 +34,7 @@ const Home: NextPage = () => {
       textarearef.current.value = "";
     }
     if (timeref.current) {
-      timeref.current.value = "1";
+      timeref.current.value = "5";
     }
   }, []);
 
@@ -96,7 +96,7 @@ const Home: NextPage = () => {
               onChange={(e) => setTtl(parseInt(e.target.value))}
               className="rounded-lg border border-gray-600 bg-gray-700 p-2.5 font-sans-title text-lg text-white placeholder-gray-400"
             >
-              <option value={1}>1 Minute</option>
+              <option value={5}>5 Minutes</option>
               <option value={60}>1 Hour</option>
               <option value={1_440}>1 Day</option>
             </select>
